@@ -15,13 +15,14 @@ pub(crate) fn cursor_ray(window: &Window) -> Vec3 {
     let w = window.width();
     let h = window.height();
 
-    println!("window wxh: {}x{}", w, h);
-
     let aspect_ratio = w / h;
 
+    println!("window wxh: {}x{}", w, h);
+    println!("aspect ratio: {}", aspect_ratio);
+
     Vec3::new(
-        (cursor.x / w - 0.5) * aspect_ratio,
-        cursor.y / h - 0.5,
+        (cursor.x / w - 0.5) / aspect_ratio * 2.6,
+        (cursor.y / h - 0.5) * aspect_ratio * 0.47,
         -1.0,
     )
     .normalize()
