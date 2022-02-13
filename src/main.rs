@@ -14,6 +14,7 @@ const FPS_VIEWING_HEIGHT: f32 = 2.0; // height of the model
 /// otherwise use first person shooter
 const USE_ISOMETRIC_VIEW: bool = false;
 
+mod hud;
 mod ik;
 mod projectile;
 mod selector;
@@ -26,6 +27,7 @@ fn main() {
         .add_system(fps_camera)
         .add_system(pan_camera)
         .add_system(change_camera_mode)
+        .add_system(hud::button_undercursor)
         .add_startup_system(ik::setup)
         .add_system(ik::ik_box_undercursor)
         .add_system(ik::solve)
@@ -87,13 +89,20 @@ fn setup_camera_resource(mut query: Query<&Camera>) {
     }
 }
 
-fn setup_camera(mut commands: Commands) {
+fn setup_camera(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     commands
         .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_xyz(0., 2.5, 10.).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
-        .insert(DefaultCamera);
+        .insert(DefaultCamera)
+        .with_children(|parent| {
+            hud::setup(parent, meshes, materials);
+        });
 
     let (yaw, pitch) = if USE_ISOMETRIC_VIEW {
         (ISOMETRIC_VIEW_YAW, ISOMETRIC_VIEW_PITCH)

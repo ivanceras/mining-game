@@ -48,7 +48,7 @@ pub(crate) fn spawn_projectile(
                 mouse_ray.dir.into()
             };
 
-            let offset = 1.0; //offset meters away in front of the camera
+            let offset = 10.0; //offset meters away in front of the camera
             commands
                 .spawn_bundle(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Icosphere {
