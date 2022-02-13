@@ -14,6 +14,8 @@ const FPS_VIEWING_HEIGHT: f32 = 2.0; // height of the model
 /// otherwise use first person shooter
 const USE_ISOMETRIC_VIEW: bool = false;
 
+mod selector;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
