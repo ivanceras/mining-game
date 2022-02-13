@@ -81,6 +81,12 @@ fn setup(
     });
 }
 
+fn setup_camera_resource(mut query: Query<&Camera>) {
+    for camera in query.iter() {
+        println!("camera matrix: {}", camera.projection_matrix);
+    }
+}
+
 fn setup_camera(mut commands: Commands) {
     commands
         .spawn_bundle(PerspectiveCameraBundle {

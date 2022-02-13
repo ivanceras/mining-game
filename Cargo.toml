@@ -10,5 +10,5 @@ dolly = "0.1"
 once_cell = "1.9"
 parry3d = "0.8"
 k = "0.27"
-nalgebra = "0.30"
+nalgebra ={ version =  "0.30", features = ["glam020"] }
 

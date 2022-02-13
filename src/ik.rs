@@ -183,12 +183,13 @@ pub fn ik_box_undercursor(
     mouse_buttons: Res<Input<MouseButton>>,
     windows: Res<Windows>,
     mut selected_cube: ResMut<SelectedIkCube>,
-    camera: Res<CameraRig>,
+    camera_rig: Res<CameraRig>,
     mut hit_impact: ResMut<IkHitImpact>,
+    camera: Query<&Camera>,
 ) {
     if !keys.pressed(KeyCode::LAlt) && mouse_buttons.pressed(MouseButton::Left) {
         if let Some((cube_index, hit)) =
-            selector::component_under_cursory_ray(cubes, windows, camera)
+            selector::component_under_cursory_ray(cubes, windows, camera_rig, camera)
         {
             selected_cube.set_selected(cube_index);
             hit_impact.0 = Some(hit);
@@ -278,27 +279,15 @@ pub fn command_move_selected_ik_object(
     mut cube_target_location: ResMut<IkCubeTargetLocation>,
     keys: Res<Input<KeyCode>>,
     windows: Res<Windows>,
-    camera: Res<CameraRig>,
+    camera_rig: Res<CameraRig>,
+    camera: Query<&Camera>,
     hit_impact: Res<IkHitImpact>,
 ) {
     if keys.pressed(KeyCode::LAlt) && mouse_buttons.pressed(MouseButton::Left) {
-        let camera_transform = camera.final_transform;
-        let window = windows.get_primary().unwrap();
-        let mouse_ray = selector::cursor_ray(window);
-
-        let direction = camera_transform.rotation * mouse_ray;
-
-        let ray = Ray::new(
-            Point::new(
-                camera_transform.position.x,
-                camera_transform.position.y,
-                camera_transform.position.z,
-            ),
-            Vector::new(direction.x, direction.y, direction.z),
-        );
+        let camera_location = camera_rig.final_transform.position;
+        let ray = selector::from_screenspace(windows, camera, camera_rig).unwrap();
         if let Some(cube_index) = selected_cube.get() {
             let hit_impact = hit_impact.0.unwrap();
-            let camera_location = camera_transform.position;
             if let Some(hit) = selector::intersect_half_space(ray, hit_impact, camera_location) {
                 cube_target_location.0 = Some(hit);
             }

@@ -1,6 +1,7 @@
 use crate::selector;
 use crate::DefaultCamera;
 use bevy::prelude::*;
+use dolly::prelude::CameraRig;
 use parry3d::{
     math::{Point, Vector},
     query::Ray,
@@ -35,16 +36,17 @@ pub(crate) fn spawn_projectile(
     windows: Res<Windows>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    camera_rig: Res<CameraRig>,
+    camera: Query<&Camera>,
 ) {
     if keys.pressed(KeyCode::LShift) && mouse_buttons.pressed(MouseButton::Left) {
+        let mouse_ray = selector::from_screenspace(windows, camera, camera_rig).unwrap();
         for camera_transform in query.iter() {
-            let window = windows.get_primary().unwrap();
-            let mouse_ray = selector::cursor_ray(window);
-
             let direction = if PROJECTILE_FROM_CENTER {
                 camera_transform.forward()
             } else {
-                camera_transform.rotation * mouse_ray
+                let direction: Vec3 = mouse_ray.dir.into();
+                camera_transform.rotation * direction
             };
 
             let offset = 10.0; //offset meters away in front of the camera

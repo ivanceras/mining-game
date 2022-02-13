@@ -2003,6 +2003,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fb2d0de08694bed883320212c18ee3008576bfe8c306f4c3c4a58b4876998be"
 dependencies = [
  "approx",
+ "glam",
  "matrixmultiply",
  "nalgebra-macros",
  "num-complex",

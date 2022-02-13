@@ -8,24 +8,49 @@ use parry3d::{
 };
 use std::{cmp::Ordering, collections::HashMap};
 
-/// calculate the ray starting location with respect to mouse position relative to the window
-pub(crate) fn cursor_ray(window: &Window) -> Vec3 {
-    let cursor = window.cursor_position().unwrap_or(Vec2::new(0.0, 0.0));
+pub fn from_screenspace(
+    windows: Res<Windows>,
+    camera: Query<&Camera>,
+    camera_rig: Res<CameraRig>,
+) -> Option<Ray> {
+    let camera_transform = Transform {
+        translation: camera_rig.final_transform.position,
+        rotation: camera_rig.final_transform.rotation,
+        scale: Vec3::ONE,
+    };
+    let view = camera_transform.compute_matrix();
 
-    let w = window.width();
-    let h = window.height();
+    let camera = camera.iter().next().unwrap();
+    let window = match windows.get(camera.window) {
+        Some(window) => window,
+        None => {
+            error!("WindowId {} does not exist", camera.window);
+            return None;
+        }
+    };
 
-    let aspect_ratio = w / h;
+    let cursor_pos_screen = window.cursor_position().unwrap_or(Vec2::new(0.0, 0.0));
 
-    println!("window wxh: {}x{}", w, h);
-    println!("aspect ratio: {}", aspect_ratio);
+    let screen_size = Vec2::from([window.width() as f32, window.height() as f32]);
+    let projection = camera.projection_matrix;
 
-    Vec3::new(
-        (cursor.x / w - 0.5) / aspect_ratio * 2.6,
-        (cursor.y / h - 0.5) * aspect_ratio * 0.47,
-        -1.0,
-    )
-    .normalize()
+    // 2D Normalized device coordinate cursor position from (-1, -1) to (1, 1)
+    let cursor_ndc = (cursor_pos_screen / screen_size) * 2.0 - Vec2::from([1.0, 1.0]);
+    let ndc_to_world: Mat4 = view * projection.inverse();
+    let world_to_ndc = projection * view;
+    let is_orthographic = projection.w_axis[3] == 1.0;
+
+    // Compute the cursor position at the near plane. The bevy camera looks at -Z.
+    let ndc_near = world_to_ndc.transform_point3(-Vec3::Z * camera.near).z;
+    let cursor_pos_near = ndc_to_world.transform_point3(cursor_ndc.extend(ndc_near));
+
+    // Compute the ray's direction depending on the projection used.
+    let ray_direction = match is_orthographic {
+        true => view.transform_vector3(-Vec3::Z), // All screenspace rays are parallel in ortho
+        false => cursor_pos_near - camera_transform.translation, // Direction from camera to cursor
+    };
+
+    Some(Ray::new(cursor_pos_near.into(), ray_direction.into()))
 }
 
 /// an algorithmn to test which of the components is under the cursor if a ray is to be casted
@@ -33,23 +58,21 @@ pub(crate) fn cursor_ray(window: &Window) -> Vec3 {
 pub(crate) fn component_under_cursory_ray<T>(
     components: Query<(&GlobalTransform, &T)>,
     windows: Res<Windows>,
-    camera: Res<CameraRig>,
+    camera_rig: Res<CameraRig>,
+    camera: Query<&Camera>,
 ) -> Option<(usize, Vec3)>
 where
     T: Component + RayCast,
 {
-    let window = windows.get_primary().unwrap();
-    let camera_transform = camera.final_transform;
-    let mouse_ray = cursor_ray(window);
-    let direction = camera_transform.rotation * mouse_ray;
-    let ray = Ray::new(
-        Point::new(
-            camera_transform.position.x,
-            camera_transform.position.y,
-            camera_transform.position.z,
-        ),
-        Vector::new(direction.x, direction.y, direction.z),
-    );
+    //let camera = camera.iter().next().unwrap();
+    /*
+    let camera_transform = Transform {
+        translation: camera_rig.final_transform.position,
+        rotation: camera_rig.final_transform.rotation,
+        scale: Vec3::ONE,
+    };
+    */
+    let ray = from_screenspace(windows, camera, camera_rig).unwrap();
 
     let closest: Option<(usize, f32)> = components
         .iter()
