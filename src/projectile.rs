@@ -40,7 +40,7 @@ pub(crate) fn spawn_projectile(
     camera: Query<&Camera>,
 ) {
     if keys.pressed(KeyCode::LShift) && mouse_buttons.pressed(MouseButton::Left) {
-        let mouse_ray = selector::cursor_ray(windows, camera, camera_rig).unwrap();
+        let mouse_ray = selector::cursor_ray(windows, camera, camera_rig);
         for camera_transform in query.iter() {
             let direction: Vec3 = if PROJECTILE_FROM_CENTER {
                 camera_transform.forward()

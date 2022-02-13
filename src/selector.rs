@@ -12,13 +12,12 @@ pub fn cursor_ray(
     windows: Res<Windows>,
     camera: Query<&Camera>,
     camera_rig: Res<CameraRig>,
-) -> Option<Ray> {
+) -> Ray {
     let camera = camera.iter().next().unwrap();
     let window = match windows.get(camera.window) {
         Some(window) => window,
         None => {
-            error!("WindowId {} does not exist", camera.window);
-            return None;
+            panic!("WindowId {} does not exist", camera.window);
         }
     };
     let cursor_pos_screen = window.cursor_position().unwrap_or(Vec2::new(0.0, 0.0));
@@ -30,7 +29,7 @@ fn cursor_position_to_ray(
     window: &Window,
     camera: &Camera,
     camera_rig: Res<CameraRig>,
-) -> Option<Ray> {
+) -> Ray {
     let camera_transform = Transform {
         translation: camera_rig.final_transform.position,
         rotation: camera_rig.final_transform.rotation,
@@ -57,7 +56,7 @@ fn cursor_position_to_ray(
         false => cursor_pos_near - camera_transform.translation, // Direction from camera to cursor
     };
 
-    Some(Ray::new(cursor_pos_near.into(), ray_direction.into()))
+    Ray::new(cursor_pos_near.into(), ray_direction.into())
 }
 
 /// an algorithmn to test which of the components is under the cursor if a ray is to be casted
@@ -71,7 +70,7 @@ pub(crate) fn component_under_cursory_ray<T>(
 where
     T: Component + RayCast,
 {
-    let ray = cursor_ray(windows, camera, camera_rig).unwrap();
+    let ray = cursor_ray(windows, camera, camera_rig);
 
     let closest: Option<(usize, f32)> = components
         .iter()

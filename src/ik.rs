@@ -285,7 +285,7 @@ pub fn command_move_selected_ik_object(
 ) {
     if keys.pressed(KeyCode::LAlt) && mouse_buttons.pressed(MouseButton::Left) {
         let camera_location = camera_rig.final_transform.position;
-        let ray = selector::cursor_ray(windows, camera, camera_rig).unwrap();
+        let ray = selector::cursor_ray(windows, camera, camera_rig);
         if let Some(cube_index) = selected_cube.get() {
             let hit_impact = hit_impact.0.unwrap();
             if let Some(hit) = selector::intersect_half_space(ray, hit_impact, camera_location) {
