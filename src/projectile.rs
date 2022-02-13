@@ -42,14 +42,13 @@ pub(crate) fn spawn_projectile(
     if keys.pressed(KeyCode::LShift) && mouse_buttons.pressed(MouseButton::Left) {
         let mouse_ray = selector::from_screenspace(windows, camera, camera_rig).unwrap();
         for camera_transform in query.iter() {
-            let direction = if PROJECTILE_FROM_CENTER {
+            let direction: Vec3 = if PROJECTILE_FROM_CENTER {
                 camera_transform.forward()
             } else {
-                let direction: Vec3 = mouse_ray.dir.into();
-                camera_transform.rotation * direction
+                mouse_ray.dir.into()
             };
 
-            let offset = 10.0; //offset meters away in front of the camera
+            let offset = 1.0; //offset meters away in front of the camera
             commands
                 .spawn_bundle(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Icosphere {
