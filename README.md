@@ -1,11 +1,11 @@
 # Mini mining game
 
-# Run
+## Run
 ```
 cargo run --release
 ```
 
-# Controls
+## Controls
 
 Hold right click to camera look
 
@@ -15,7 +15,7 @@ Hold right click to camera look
 - D - right
 - SHIFT + Click - shoot projectile at mouse location
 
-# Moving the inverse kinematics arm
+## Moving the inverse kinematics arm
 
 - Click - to select the hand (The last box of the kinematics set-up)
 - ALT + Click - to move the hand around the 3D space.
