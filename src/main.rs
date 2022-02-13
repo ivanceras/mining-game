@@ -14,6 +14,7 @@ const FPS_VIEWING_HEIGHT: f32 = 2.0; // height of the model
 /// otherwise use first person shooter
 const USE_ISOMETRIC_VIEW: bool = false;
 
+mod ik;
 mod selector;
 
 fn main() {
@@ -24,6 +25,11 @@ fn main() {
         .add_system(fps_camera)
         .add_system(pan_camera)
         .add_system(change_camera_mode)
+        .add_startup_system(ik::setup_ik)
+        .add_system(ik::ik_box_undercursor)
+        .add_system(ik::solve)
+        .add_system(ik::command_move_selected_ik_object)
+        .add_system(ik::update_move_selected_ik_object)
         .run();
 }
 

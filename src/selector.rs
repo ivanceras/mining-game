@@ -1,11 +1,11 @@
 use bevy::{ecs::query::WorldQuery, prelude::*};
+use dolly::prelude::CameraRig;
+use nalgebra::Unit;
 use parry3d::{
     math::{Isometry, Point, Real, Vector},
     query::{Ray, RayCast, RayIntersection},
     shape::{Cuboid, HalfSpace},
 };
-
-use dolly::prelude::CameraRig;
 use std::{cmp::Ordering, collections::HashMap};
 
 /// calculate the ray starting location with respect to mouse position relative to the window
@@ -76,4 +76,26 @@ where
     } else {
         None
     }
+}
+
+pub(crate) fn intersect_half_space(
+    ray: Ray,
+    hit_impact: Vec3,
+    camera_location: Vec3,
+) -> Option<Vec3> {
+    let normal = hit_impact + camera_location;
+    let hit_impact = Point::new(hit_impact.x, hit_impact.y, hit_impact.z);
+    let camera_location = Point::new(camera_location.x, camera_location.y, camera_location.z);
+
+    let normal = Vector::new(0.0, 0.0, 1.0);
+    let half_space = HalfSpace::new(Unit::new_normalize(normal));
+
+    let space_transform =
+        Isometry::face_towards(&hit_impact, &camera_location, &Vector::new(0.0, 1.0, 0.0));
+    half_space
+        .cast_ray_and_get_normal(&space_transform, &ray, f32::INFINITY, true)
+        .map(|intersection| {
+            let hit = ray.point_at(intersection.toi);
+            Vec3::new(hit.x, hit.y, hit.z)
+        })
 }
