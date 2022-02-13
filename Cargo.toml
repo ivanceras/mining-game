@@ -5,17 +5,10 @@ edition = "2021"
 
 
 [dependencies]
-#bevy-kajiya = { git = "https://github.com/Seabass247/bevy-kajiya.git", rev = "cffc8ba" }
-# enabling bevy_render will crash kajiya with Error in Surface::configure: invalid surface
-bevy = { version = "0.6.0", default-features = false, features = [ "bevy_winit", "x11", "bevy_audio", "vorbis"] }
+bevy = { version = "0.6.0"}
 dolly = "0.1"
 once_cell = "1.9"
 parry3d = "0.8"
 k = "0.27"
 nalgebra = "0.30"
 
-[patch.crates-io]
-# Official ray-tracing extensions
-rspirv = { git = "https://github.com/gfx-rs/rspirv.git", rev = "dae552c" }
-spirv_headers = { git = "https://github.com/gfx-rs/rspirv.git", rev = "dae552c" }
-#kajiya = { git = "https://github.com/EmbarkStudios/kajiya.git", rev = "dd2d244" }
