@@ -9,11 +9,15 @@ cargo run --release
 
 Hold right click to camera look
 
-- W - forward
-- S - backward
-- A - left
-- D - right
+- W - move forward
+- S - move backward
+- A - move left
+- D - move right
+- Q - move down
+- E - move up
 - SHIFT + Click - shoot projectile at mouse location
+- M - change camera view to MOBA style camera
+- F - change camera view to FPS
 
 ## Moving the inverse kinematics arm
 

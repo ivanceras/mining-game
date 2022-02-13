@@ -250,9 +250,7 @@ pub fn solve(
     target.translation.vector.z += move_vec.z * time_delta_seconds * multiplier;
 
     let solver: JacobianIkSolver<f32> = JacobianIkSolver::default();
-    let constraints = k::Constraints {
-        ..Default::default()
-    };
+    let constraints = k::Constraints::default();
     solver
         .solve_with_constraints(&arm, &target, &constraints)
         .ok();
