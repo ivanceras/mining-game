@@ -24,6 +24,8 @@ pub fn cursor_ray(
     cursor_position_to_ray(cursor_pos_screen, window, camera, camera_rig)
 }
 
+/// Convert cursor position in screen to a ray
+/// derive from https://github.com/aevyrie/bevy_mod_raycast/blob/d9fe7f99b928d4ba6bf670235c5cccf2d04723c7/src/primitives.rs#L109
 fn cursor_position_to_ray(
     cursor_pos_screen: Vec2,
     window: &Window,
