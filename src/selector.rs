@@ -8,18 +8,11 @@ use parry3d::{
 };
 use std::{cmp::Ordering, collections::HashMap};
 
-pub fn from_screenspace(
+pub fn cursor_ray(
     windows: Res<Windows>,
     camera: Query<&Camera>,
     camera_rig: Res<CameraRig>,
 ) -> Option<Ray> {
-    let camera_transform = Transform {
-        translation: camera_rig.final_transform.position,
-        rotation: camera_rig.final_transform.rotation,
-        scale: Vec3::ONE,
-    };
-    let view = camera_transform.compute_matrix();
-
     let camera = camera.iter().next().unwrap();
     let window = match windows.get(camera.window) {
         Some(window) => window,
@@ -28,8 +21,22 @@ pub fn from_screenspace(
             return None;
         }
     };
-
     let cursor_pos_screen = window.cursor_position().unwrap_or(Vec2::new(0.0, 0.0));
+    cursor_position_to_ray(cursor_pos_screen, window, camera, camera_rig)
+}
+
+fn cursor_position_to_ray(
+    cursor_pos_screen: Vec2,
+    window: &Window,
+    camera: &Camera,
+    camera_rig: Res<CameraRig>,
+) -> Option<Ray> {
+    let camera_transform = Transform {
+        translation: camera_rig.final_transform.position,
+        rotation: camera_rig.final_transform.rotation,
+        scale: Vec3::ONE,
+    };
+    let view = camera_transform.compute_matrix();
 
     let screen_size = Vec2::from([window.width() as f32, window.height() as f32]);
     let projection = camera.projection_matrix;
@@ -64,15 +71,7 @@ pub(crate) fn component_under_cursory_ray<T>(
 where
     T: Component + RayCast,
 {
-    //let camera = camera.iter().next().unwrap();
-    /*
-    let camera_transform = Transform {
-        translation: camera_rig.final_transform.position,
-        rotation: camera_rig.final_transform.rotation,
-        scale: Vec3::ONE,
-    };
-    */
-    let ray = from_screenspace(windows, camera, camera_rig).unwrap();
+    let ray = cursor_ray(windows, camera, camera_rig).unwrap();
 
     let closest: Option<(usize, f32)> = components
         .iter()
