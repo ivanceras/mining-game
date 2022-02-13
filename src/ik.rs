@@ -162,6 +162,10 @@ pub(crate) fn setup(
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                 material: materials.add(StandardMaterial {
                     base_color: Color::RED,
+                    metallic: 1.0,
+                    perceptual_roughness: 0.0,
+                    reflectance: 1.0,
+                    emissive: Color::RED,
                     ..Default::default()
                 }),
                 transform: Transform {

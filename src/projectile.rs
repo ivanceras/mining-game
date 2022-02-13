@@ -57,6 +57,8 @@ pub(crate) fn spawn_projectile(
                     })),
                     material: materials.add(StandardMaterial {
                         base_color: Color::GREEN,
+                        metallic: 1.0,
+                        perceptual_roughness: 0.0,
                         ..Default::default()
                     }),
                     transform: Transform {
