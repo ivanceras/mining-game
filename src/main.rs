@@ -25,7 +25,7 @@ fn main() {
         .add_system(fps_camera)
         .add_system(pan_camera)
         .add_system(change_camera_mode)
-        .add_startup_system(ik::setup_ik)
+        .add_startup_system(ik::setup)
         .add_system(ik::ik_box_undercursor)
         .add_system(ik::solve)
         .add_system(ik::command_move_selected_ik_object)

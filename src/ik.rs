@@ -57,7 +57,7 @@ impl SelectedIkCube {
     }
 }
 
-fn create_joint_with_link_array() -> k::Node<f32> {
+fn build_joints() -> k::Node<f32> {
     let fixed: k::Node<f32> = NodeBuilder::new()
         .name("fixed")
         .joint_type(JointType::Fixed)
@@ -124,8 +124,8 @@ fn create_joint_with_link_array() -> k::Node<f32> {
     fixed
 }
 
-fn setup_arm() -> SerialChain<f32> {
-    let root = create_joint_with_link_array();
+fn build_arm() -> SerialChain<f32> {
+    let root = build_joints();
     let arm: SerialChain<f32> = k::SerialChain::new_unchecked(k::Chain::from_root(root));
 
     arm.set_joint_positions(&DEFAULT_ANGLES).unwrap();
@@ -144,22 +144,24 @@ fn setup_arm() -> SerialChain<f32> {
     arm
 }
 
-pub fn setup_ik(
+pub(crate) fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.insert_resource(setup_arm());
+    let arm = build_arm();
+    let arm_len = arm.iter().count();
+    commands.insert_resource(arm);
     commands.insert_resource(IkHitImpact::default());
     commands.insert_resource(SelectedIkCube::default());
     commands.insert_resource(IkCubeTargetLocation::default());
 
-    for i in 0..10 {
+    for i in 0..arm_len {
         commands
             .spawn_bundle(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                 material: materials.add(StandardMaterial {
-                    base_color: Color::WHITE,
+                    base_color: Color::RED,
                     ..Default::default()
                 }),
                 transform: Transform {
