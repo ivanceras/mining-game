@@ -15,6 +15,8 @@ pub(crate) fn cursor_ray(window: &Window) -> Vec3 {
     let w = window.width();
     let h = window.height();
 
+    println!("window wxh: {}x{}", w, h);
+
     let aspect_ratio = w / h;
 
     Vec3::new(

@@ -15,6 +15,7 @@ const FPS_VIEWING_HEIGHT: f32 = 2.0; // height of the model
 const USE_ISOMETRIC_VIEW: bool = false;
 
 mod ik;
+mod projectile;
 mod selector;
 
 fn main() {
@@ -30,6 +31,8 @@ fn main() {
         .add_system(ik::solve)
         .add_system(ik::command_move_selected_ik_object)
         .add_system(ik::update_move_selected_ik_object)
+        .add_system(projectile::spawn_projectile)
+        .add_system(projectile::move_projectile)
         .run();
 }
 
