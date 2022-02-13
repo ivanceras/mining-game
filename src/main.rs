@@ -19,7 +19,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_startup_system(setup_camera)
-        .add_system(drive_camera)
+        .add_system(fps_camera)
+        .add_system(pan_camera)
+        .add_system(change_camera_mode)
         .run();
 }
 
@@ -33,7 +35,7 @@ fn setup(
 ) {
     // ground plane
     commands.spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 20.0 })),
+        mesh: meshes.add(Mesh::from(shape::Plane { size: 100.0 })),
         material: materials.add(StandardMaterial {
             base_color: Color::WHITE,
             perceptual_roughness: 1.0,
@@ -42,15 +44,40 @@ fn setup(
         ..Default::default()
     });
 
+    // directional 'sun' light
+    const HALF_SIZE: f32 = 10.0;
+    commands.spawn_bundle(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            // Configure the projection to better fit the scene
+            shadow_projection: OrthographicProjection {
+                left: -HALF_SIZE,
+                right: HALF_SIZE,
+                bottom: -HALF_SIZE,
+                top: HALF_SIZE,
+                near: -10.0 * HALF_SIZE,
+                far: 10.0 * HALF_SIZE,
+                ..Default::default()
+            },
+            shadows_enabled: true,
+            ..Default::default()
+        },
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-std::f32::consts::FRAC_PI_4),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+}
+
+fn setup_camera(mut commands: Commands) {
     commands
         .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_xyz(0., 2.5, 10.).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
         .insert(DefaultCamera);
-}
 
-fn setup_camera(mut commands: Commands) {
     let (yaw, pitch) = if USE_ISOMETRIC_VIEW {
         (ISOMETRIC_VIEW_YAW, ISOMETRIC_VIEW_PITCH)
     } else {
@@ -77,7 +104,7 @@ fn setup_camera(mut commands: Commands) {
     commands.insert_resource(camera_rig);
 }
 
-fn drive_camera(
+fn fps_camera(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
     mut mouse_motion_events: EventReader<MouseMotion>,
@@ -141,4 +168,80 @@ fn drive_camera(
     let mut camera_transform = query.iter_mut().next().unwrap();
     camera_transform.translation = camera_rig.final_transform.position;
     camera_transform.rotation = camera_rig.final_transform.rotation;
+}
+
+fn change_camera_mode(
+    time: Res<Time>,
+    keys: Res<Input<KeyCode>>,
+    mut camera_rig: ResMut<CameraRig>,
+    mut query: Query<&mut Transform, With<DefaultCamera>>,
+) {
+    let time_delta_seconds: f32 = time.delta_seconds();
+
+    // MOBA view
+    if keys.pressed(KeyCode::M) {
+        camera_rig
+            .driver_mut::<YawPitch>()
+            .set_rotation_quat(Quat::IDENTITY);
+
+        camera_rig
+            .driver_mut::<YawPitch>()
+            .rotate_yaw_pitch(ISOMETRIC_VIEW_YAW, ISOMETRIC_VIEW_PITCH);
+
+        camera_rig.driver_mut::<Position>().position.y = ISOMETRIC_VIEWING_HEIGHT;
+
+        camera_rig.update(time_delta_seconds);
+
+        let mut camera_transform = query.iter_mut().next().unwrap();
+        camera_transform.rotation = camera_rig.final_transform.rotation;
+        camera_transform.translation = camera_rig.final_transform.position;
+    }
+
+    // FPS view
+    if keys.pressed(KeyCode::F) {
+        camera_rig
+            .driver_mut::<YawPitch>()
+            .set_rotation_quat(Quat::IDENTITY);
+
+        camera_rig
+            .driver_mut::<YawPitch>()
+            .rotate_yaw_pitch(FPS_VIEW_YAW, FPS_VIEW_PITCH);
+
+        camera_rig.driver_mut::<Position>().position.y = FPS_VIEWING_HEIGHT;
+
+        camera_rig.update(time_delta_seconds);
+
+        let mut camera_transform = query.iter_mut().next().unwrap();
+        camera_transform.rotation = camera_rig.final_transform.rotation;
+        camera_transform.translation = camera_rig.final_transform.position;
+    }
+}
+
+fn pan_camera(
+    time: Res<Time>,
+    keys: Res<Input<KeyCode>>,
+    mut camera_rig: ResMut<CameraRig>,
+    mut query: Query<&mut Transform, With<DefaultCamera>>,
+) {
+    let time_delta_seconds: f32 = time.delta_seconds();
+    let mut move_vec = Vec3::ZERO;
+    if keys.pressed(KeyCode::Up) {
+        move_vec.z -= 1.0;
+    }
+    if keys.pressed(KeyCode::Down) {
+        move_vec.z += 1.0;
+    }
+    if keys.pressed(KeyCode::Left) {
+        move_vec.x -= 1.0;
+    }
+    if keys.pressed(KeyCode::Right) {
+        move_vec.x += 1.0;
+    }
+    let translation = move_vec * 10.0 * time_delta_seconds * 2.5;
+    camera_rig.driver_mut::<Position>().translate(translation);
+
+    camera_rig.update(time_delta_seconds);
+
+    let mut camera_transform = query.iter_mut().next().unwrap();
+    camera_transform.translation = camera_rig.final_transform.position;
 }
